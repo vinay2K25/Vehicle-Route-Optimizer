@@ -70,3 +70,13 @@ for index in range(1, nodeCount):
 
 print(nodeDistance)
 
+# Decision variables are of the type x[i,j,k], being 1 if the vehicle with ID 'k' goes from node 'i' to node 'j', 0 other-wise!
+model = Model('Vehicle')
+X = {}
+for vehicle in range(1, vehicleCount + 1):
+    for source in range(nodeCount):
+        for destination in range(nodeCount):
+            current = f"X{source}{destination}{vehicle}"
+            key = (source, destination, vehicle)
+            X[key] = model.addVar(lb=0, ub=1, vtype=GRB.BINARY, name=current)
+print(len(X))
