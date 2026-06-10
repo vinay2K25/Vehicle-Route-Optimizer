@@ -76,7 +76,7 @@ X = {}
 for vehicle in range(1, vehicleCount + 1):
     for source in range(nodeCount):
         for destination in range(nodeCount):
-            current = f"X{source}{destination}{vehicle}"
+            current = f"X-{source}-{destination}-{vehicle}"
             key = (source, destination, vehicle)
             X[key] = model.addVar(lb=0, ub=1, vtype=GRB.BINARY, name=current)
 # print(len(X))
@@ -89,6 +89,16 @@ for vehicle in range(1, vehicleCount + 1):
             if source != destination:
                 target += nodeDistance[source][destination] * X[(source, destination, vehicle)]
 
+# Atleast one decision variable must be 1 for each customer!
+# Do not count the depot in this, it must be handled separately!
+for destination in range(1, nodeCount):
+    sum = 0
+    for source in range(nodeCount):
+        for vehicle in range(1, vehicleCount + 1):
+            if source != destination:
+                sum += X[(source, destination, vehicle)]
+    model.addConstr(sum == True)
+
 # The target must be minimized!
 model.setObjective(target, GRB.MINIMIZE)
 model.optimize()
@@ -98,3 +108,9 @@ if model.Status == GRB.OPTIMAL:
 else:
     print("No optimal value was found! Current status:", model.Status)
 
+for vehicle in range(1, vehicleCount + 1):
+    for source in range(nodeCount):
+        for destination in range(nodeCount):
+            if X[(source, destination, vehicle)].X == True:
+                print(X[(source, destination, vehicle)], end=' ')
+print()
