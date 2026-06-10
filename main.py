@@ -100,7 +100,7 @@ for destination in range(1, nodeCount):
     model.addConstr(sum <= 1)
     model.addConstr(sum >= 1)
 
-# The number of incoming and out-going edges must be the same, that is, 1!
+# The number of in-coming and out-going edges must be the same, that is, 1!
 for source in range(1, nodeCount):
     sum = 0
     for destination in range(nodeCount):
@@ -109,6 +109,30 @@ for source in range(1, nodeCount):
                 sum += X[(source, destination, vehicle)]
     model.addConstr(sum <= 1)
     model.addConstr(sum >= 1)
+
+# The number of out-going edges from the depot, and in-coming edges to the depot must be 1 for each vehicle!
+for vehicle in range(1, vehicleCount + 1):
+    sumIn = 0
+    sumOut = 0
+    for node in range(1, nodeCount):
+        sumIn += X[(node, 0, vehicle)]
+        sumOut += X[(0, node, vehicle)]
+    model.addConstr(sumIn <= 1)
+    model.addConstr(sumIn >= 1)
+    model.addConstr(sumOut <= 1)
+    model.addConstr(sumOut >= 1)
+
+# We also need to ensure that the same vehicle entering a customer's node must also leave it!
+for node in range(1, nodeCount):
+    for vehicle in range(1, vehicleCount + 1):
+        sumIn = 0
+        sumOut = 0
+        # Flow-conservation must include the depot too!
+        for adjoint in range(nodeCount):
+            sumOut += X[(node, adjoint, vehicle)]
+            sumIn += X[(adjoint, node, vehicle)]
+        model.addConstr(sumIn <= sumOut)
+        model.addConstr(sumIn >= sumOut)
 
 # The target must be minimized!
 model.setObjective(target, GRB.MINIMIZE)
