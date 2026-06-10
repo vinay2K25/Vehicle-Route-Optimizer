@@ -89,7 +89,7 @@ for vehicle in range(1, vehicleCount + 1):
             if source != destination:
                 target += nodeDistance[source][destination] * X[(source, destination, vehicle)]
 
-# Atleast one decision variable must be 1 for each customer!
+# Each customer must be visited exactly once!
 # Do not count the depot in this, it must be handled separately!
 for destination in range(1, nodeCount):
     sum = 0
@@ -97,7 +97,18 @@ for destination in range(1, nodeCount):
         for vehicle in range(1, vehicleCount + 1):
             if source != destination:
                 sum += X[(source, destination, vehicle)]
-    model.addConstr(sum == True)
+    model.addConstr(sum <= 1)
+    model.addConstr(sum >= 1)
+
+# The number of incoming and out-going edges must be the same, that is, 1!
+for source in range(1, nodeCount):
+    sum = 0
+    for destination in range(nodeCount):
+        for vehicle in range(1, vehicleCount + 1):
+            if source != destination:
+                sum += X[(source, destination, vehicle)]
+    model.addConstr(sum <= 1)
+    model.addConstr(sum >= 1)
 
 # The target must be minimized!
 model.setObjective(target, GRB.MINIMIZE)
