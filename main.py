@@ -29,7 +29,7 @@ for index in range(1, customerCount + 1):
 vehicleCount = 3
 vehicleCapacity = {}
 for index in range(1, vehicleCount + 1):
-    vehicleCapacity[index] = index + 6
+    vehicleCapacity[index] = index + 7
 
 totalDemand = 0
 for index in range(1, customerCount + 1):
@@ -123,7 +123,7 @@ for node in range(1, nodeCount):
 U = {}
 for index in range(1, customerCount + 1):
     current = f"U-{index}"
-    U[index] = model.addVar(vtype=GRB.INTEGER, name=current)
+    U[index] = model.addVar(lb=1, ub=customerCount, vtype=GRB.INTEGER, name=current)
 
 # Adding the M-T-Z constraint(s)!
 for vehicle in range(1, vehicleCount + 1):
@@ -132,18 +132,26 @@ for vehicle in range(1, vehicleCount + 1):
             if source != destination:
                 model.addConstr(U[source] - U[destination] + customerCount * X[(source, destination, vehicle)] <= customerCount - 1)
 
+# Taking customer demand and vehicle capaity into account!
+for vehicle in range(1, vehicleCount + 1):
+    totalCustomerDemand = 0
+    for destination in range(1, nodeCount):
+        for source in range(nodeCount):
+            if source != destination:
+                totalCustomerDemand += customerDemand[destination] * X[(source, destination, vehicle)]
+    model.addConstr(totalCustomerDemand <= vehicleCapacity[vehicle])
+
 # The target must be minimized!
 model.setObjective(target, GRB.MINIMIZE)
 model.optimize()
 
 if model.Status == GRB.OPTIMAL:
     print("Optimized Value:", model.ObjVal)
+    for vehicle in range(1, vehicleCount + 1):
+        for source in range(nodeCount):
+            for destination in range(nodeCount):
+                if X[(source, destination, vehicle)].X == True:
+                    print(X[(source, destination, vehicle)])
+    print()
 else:
     print("No optimal value was found! Current status:", model.Status)
-
-for vehicle in range(1, vehicleCount + 1):
-    for source in range(nodeCount):
-        for destination in range(nodeCount):
-            if X[(source, destination, vehicle)].X == True:
-                print(X[(source, destination, vehicle)])
-print()
