@@ -31,25 +31,13 @@ vehicleCapacity = {}
 for index in range(1, vehicleCount + 1):
     vehicleCapacity[index] = index + 6
 
-# print("Depot:")
-# print(f"ID = {depotID}, location = {depotLocation}")
-
 totalDemand = 0
-# print("Customer(s):")
 for index in range(1, customerCount + 1):
-    # print(f"ID = {index}, location = {customerLocation[index]}, demand = {customerDemand[index]}")
     totalDemand += customerDemand[index]
 
 totalCapacity = 0
-# print("Vehicle(s):")
 for index in range(1, vehicleCount + 1):
-    # print(f"ID = {index}, capacity = {vehicleCapacity[index]}")
     totalCapacity += vehicleCapacity[index]
-
-# if totalDemand > totalCapacity:
-    # print("Overload!")
-# else:
-    # print("Normal!")
 
 # Node(s) are simply re-presented by the depot ID and customer IDs!
 # We first find the distance(s) between every pair of customer(s)!
@@ -68,8 +56,6 @@ for index in range(1, nodeCount):
     nodeDistance[index][0] = current
     nodeDistance[0][index] = current
 
-# print(nodeDistance)
-
 # Decision variables are of the type x[i,j,k], being 1 if the vehicle with ID 'k' goes from node 'i' to node 'j', 0 other-wise!
 model = Model('Vehicle')
 X = {}
@@ -79,7 +65,6 @@ for vehicle in range(1, vehicleCount + 1):
             current = f"X-{source}-{destination}-{vehicle}"
             key = (source, destination, vehicle)
             X[key] = model.addVar(lb=0, ub=1, vtype=GRB.BINARY, name=current)
-# print(len(X))
 
 # Defining the objective function - sum of product of distance(s) and decision variable(s)!
 target = 0
@@ -134,6 +119,19 @@ for node in range(1, nodeCount):
         model.addConstr(sumIn <= sumOut)
         model.addConstr(sumIn >= sumOut)
 
+# We introduce additional variable(s) - one per customer, to indicate their position in a path!
+U = {}
+for index in range(1, customerCount + 1):
+    current = f"U-{index}"
+    U[index] = model.addVar(vtype=GRB.INTEGER, name=current)
+
+# Adding the M-T-Z constraint(s)!
+for vehicle in range(1, vehicleCount + 1):
+    for source in range(1, nodeCount):
+        for destination in range(1, nodeCount):
+            if source != destination:
+                model.addConstr(U[source] - U[destination] + customerCount * X[(source, destination, vehicle)] <= customerCount - 1)
+
 # The target must be minimized!
 model.setObjective(target, GRB.MINIMIZE)
 model.optimize()
@@ -147,5 +145,5 @@ for vehicle in range(1, vehicleCount + 1):
     for source in range(nodeCount):
         for destination in range(nodeCount):
             if X[(source, destination, vehicle)].X == True:
-                print(X[(source, destination, vehicle)], end=' ')
+                print(X[(source, destination, vehicle)])
 print()
