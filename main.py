@@ -1,6 +1,7 @@
 import gurobipy as gp
 from gurobipy import Model, GRB
 import numpy as np
+import matplotlib.pyplot as plt
 
 def findDistance(first, second):
     X = first[0]
@@ -17,9 +18,7 @@ depotLocation = (0, 0)
 
 # Customer requires three data - a unique ID, location and demand!
 customerCount = 5
-customerLocation = {}
-for index in range(1, customerCount + 1):
-    customerLocation[index] = (index - 3, index + 4)
+customerLocation = {1:(-6, 2), 2:(0, 6), 3:(6, 2), 4:(4, -5), 5:(-4, -5)}
 
 customerDemand = {}
 for index in range(1, customerCount + 1):
