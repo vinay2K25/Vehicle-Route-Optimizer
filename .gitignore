@@ -3,3 +3,6 @@
 
 # Omit any virtual environment files and folders!
 __pycache__
+
+# Omit the text-file containing the output!
+*.txt
