@@ -2,6 +2,7 @@ import gurobipy as gp
 from gurobipy import Model, GRB
 import numpy as np
 import matplotlib.pyplot as plt
+from visualise import plotRoutes
 
 def findDistance(first, second):
     X = first[0]
@@ -145,12 +146,39 @@ model.setObjective(target, GRB.MINIMIZE)
 model.optimize()
 
 if model.Status == GRB.OPTIMAL:
+    vehicleRoute = {}
+    vehiclePath = {}
     print("Optimized Value:", model.ObjVal)
     for vehicle in range(1, vehicleCount + 1):
+        vehicleRoute[vehicle] = []
+        nextNode = {}
         for source in range(nodeCount):
             for destination in range(nodeCount):
                 if X[(source, destination, vehicle)].X == True:
-                    print(X[(source, destination, vehicle)])
-    print()
+                    vehicleRoute[vehicle].append((source, destination))
+                    nextNode[source] = destination
+        nodeOrder = []
+        nodeOrder.append(0)
+        current = nextNode[0]
+        while current != 0:
+            nodeOrder.append(current)
+            current = nextNode[current]
+        nodeOrder.append(current)
+        vehiclePath[vehicle] = nodeOrder
+    # Print the path and related-details for each vehicle!
+    for key, value in vehiclePath.items():
+        print(f"Vehicle {key}: {value}")
+        # Load = Customer Demand/Vehicle Capacity!
+        demandMet = 0
+        for index in range(1, len(value) - 1):
+            demandMet += customerDemand[value[index]]
+        print(f"Load: {demandMet}/{vehicleCapacity[key]}")
+        # Total Distance covered in the path!
+        totalDistance = 0
+        for index in range(1, len(value)):
+            totalDistance += nodeDistance[value[index - 1]][value[index]]
+        print(f"Distance: {totalDistance}")
+    # Plot the routes via matplotlib!
+    plotRoutes(depotLocation, customerLocation, vehicleRoute)
 else:
     print("No optimal value was found! Current status:", model.Status)
