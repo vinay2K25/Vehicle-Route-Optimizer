@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 
-def plotRoutes(depotLocation, customerLocation, vehicleRoute):
+def plotRoutes(depotID, depotLocation, customerLocation, vehicleRoute):
     # To achieve a cleaner-look!
     plt.figure(figsize=(10, 8))
     plt.axis('equal')
 
     # Storing all node co-ordinates in a single dictionary!
-    nodeLocation = {0:depotLocation}
+    nodeLocation = {depotID:depotLocation}
     nodeLocation.update(customerLocation)
 
     # Plotting the depot!
@@ -22,8 +22,8 @@ def plotRoutes(depotLocation, customerLocation, vehicleRoute):
     colors = ['red', 'green', 'blue']
 
     # Drawing the routes!
-    for vehicle, edges in vehicleRoute.items():
-        color = colors[vehicle - 1]
+    for index, (vehicle, edges) in enumerate(vehicleRoute.items()):
+        color = colors[index % len(colors)]
         for source, destination in edges:
             startX, startY = nodeLocation[source]
             endX, endY = nodeLocation[destination]
